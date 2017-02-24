@@ -38,6 +38,12 @@ void spindle_init()
     SPINDLE_TCCRB_REGISTER = SPINDLE_TCCRB_INIT_MASK;
     #ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
       SPINDLE_ENABLE_DDR |= (1<<SPINDLE_ENABLE_BIT); // Configure as output pin.
+
+		#ifdef INVERT_SPINDLE_ENABLE_PIN
+			  SPINDLE_ENABLE_PORT |= (1 << SPINDLE_ENABLE_BIT);  // Set pin to high
+		#else
+			  SPINDLE_ENABLE_PORT &= ~(1 << SPINDLE_ENABLE_BIT); // Set pin to low
+		#endif
     #else
       SPINDLE_DIRECTION_DDR |= (1<<SPINDLE_DIRECTION_BIT); // Configure as output pin.
     #endif
@@ -148,8 +154,9 @@ void spindle_stop()
       sys.spindle_speed = settings.rpm_max;
       pwm_value = SPINDLE_PWM_MAX_VALUE;
     } else if (rpm <= settings.rpm_min) {
-      if (rpm == 0.0) { // S0 disables spindle
+      if (rpm == 0.0) {
         sys.spindle_speed = 0.0;
+
         pwm_value = SPINDLE_PWM_OFF_VALUE;
       } else { // Set minimum PWM output
         sys.spindle_speed = settings.rpm_min;
